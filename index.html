@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LTalk - Realtime Node Socket.io Chatting App</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- <style>
+        body {
+            margin: 0;
+            padding-bottom: 3rem;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        #form {
+            background: rgba(0, 0, 0, 0.15);
+            padding: 0.25rem;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            height: 3rem;
+            box-sizing: border-box;
+            backdrop-filter: blur(10px);
+        }
+
+        #input {
+            border: none;
+            padding: 0 1rem;
+            flex-grow: 1;
+            border-radius: 2rem;
+            margin: 0.25rem;
+        }
+
+        #input:focus {
+            outline: none;
+        }
+
+        #form>button {
+            background: #333;
+            border: none;
+            padding: 0 1rem;
+            margin: 0.25rem;
+            border-radius: 3px;
+            outline: none;
+            color: #fff;
+        }
+
+        #messages {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        #messages>li {
+            padding: 0.5rem 1rem;
+        }
+
+        #messages>li:nth-child(odd) {
+            background: #efefef;
+        }
+    </style> -->
+</head>
+
+<body>
+    <!-- <div>ye mera hai</div>
+    <ul id="messages"></ul>
+    <form id="form" action="">
+        <input id="input" autocomplete="off" /><button>Send</button>
+    </form> -->
+
+
+    <nav>
+        <img class="logo" src="chat.png" alt="LOGO">
+        <h1>Welcome to LTalk App</h1>
+    </nav>
+
+    <div class="container">
+        <div class="message right">Hey right</div>
+        <div class="message left">Hey left</div>
+    </div>
+
+    <div class="send">
+        <form action="#" id="send-container">
+            <input type="text" name="messageInp" id="messageInp">
+            <button class="btn" type="submit">Send</button>
+        </form>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        var socket = io();
+
+        // var audio = new Audio('ting.mp3')
+        var messages = document.getElementById('messages');
+        var form = document.getElementById('form');
+        var input = document.getElementById('input');
+
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            audio.play();
+            if (input.value) {
+                socket.emit('chat message', input.value);
+                input.value = '';
+            }
+        });
+
+
+        socket.on('chat message', function (msg) {
+            audio.play();
+            var item = document.createElement('li');
+            item.textContent = msg;
+            messages.appendChild(item);
+            window.scrollTo(0, document.body.scrollHeight);
+        });
+
+        // Get DOM elements in respective Js variables
+        const form = document.getElementById('send-container');
+        const messageInput = document.getElementById('messageInp');
+        const messageContainer = document.querySelector(".container");
+
+        // Audio that will play on receiving messages
+        // var audio = new Audio('ting.mp3');
+
+        // Function which will append event info to the contaner
+        const append = (message, position) => {
+            const messageElement = document.createElement('div');
+            messageElement.innerText = message;
+            messageElement.classList.add('message');
+            messageElement.classList.add(position);
+            messageContainer.append(messageElement);
+            if (position == 'left') {
+                audio.play();
+            }
+        }
+
+
+        // Ask new user for his / her name and let the server know
+        const name = prompt("Enter your name to join");
+        socket.emit('new-user-joined', name);
+
+        // If a new user joins, receive his/her name from the server
+        socket.on('user-joined', name => {
+            append(`${name} joined the chat`, 'right')
+        })
+
+        // If server sends a message, receive it
+        socket.on('receive', data => {
+            append(`${data.name}: ${data.message}`, 'left')
+        })
+
+        // If a user leaves the chat, append the info to the container
+        socket.on('left', name => {
+            append(`${name} left the chat`, 'right')
+        })
+
+        // If the form gets submitted, send server the message
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const message = messageInput.value;
+            append(`You: ${message}`, 'right');
+            socket.emit('send', message);
+            messageInput.value = ''
+        })
+
+    </script>
+
+</body>
+
+</html>
